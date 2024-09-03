@@ -1,52 +1,58 @@
-import logo from './logo.svg';
+
 import './App.css';
 import {Component} from 'react';
 
 class App extends Component {
-  constructor (props){
-    super(props);
-    this.handlePClick = this.handlePClick.bind(this);
-
-    this.state = {
-      name : "Luan Marques",
-      counter: 0
-    };
-  }
-
-  handlePClick () {
-    this.setState({ name: 'Pedro' });
+  state = {
+    posts: []
   };
 
-  handleAClick = (event) => {
-    event.preventDefault();
-    const {counter} = this.state;
-    this.setState({counter: counter + 1})
+  timeoutUpdate = null;
+
+  componentDidMount()
+  {
+    this.loadPosts();
+  }
+
+  loadPosts= async () => 
+    {
+    const postsResponse =  fetch('https://jsonplaceholder.typicode.com/posts');
+    const photoResponse = fetch('https://jsonplaceholder.typicode.com/photos')
+    const [posts, photos] = await Promise.all([postsResponse, photoResponse]);
+    const postsJson = await posts.json();
+    const photoJson = await photos.json();
+
+    const postsAndPhotos = postsJson.map((post, index) => {
+      return {... post, cover: photoJson[index].url}
+    });
+    this.setState({posts: postsAndPhotos});
   }
 
   render () {
-    const { name, counter } = this.state;
+    const { posts} = this.state;
     
     
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p onClick={this.handlePClick}>
-            {name} {counter}
-          </p>
-          <a
-            onClick={this.handleAClick}
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Somatória
-          </a>
-        </header>
+      <section className='container'>
+        <div className="posts">
+        {posts.map( post => (
+          <div className='post'>
+            <img src={post.cover} alt={post.title} />
+          <div key={post.id} className='post-content'>
+          <h1>{post.title}</h1>
+          <p>{post.body}</p>
+          </div>
+          </div>
+          ))}
       </div>
+    
+      </section>
     );
   }
-}
+  }
+
+
+  
+
 
 export default App;
